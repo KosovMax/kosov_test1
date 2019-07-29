@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+	        <div class="col-xs-12 col-sm-12 col-md-12">
+	        	<div class="form-group">
+					<input type="text" class="form-control" id="getURL" placeholder="url" value="https://www.google.com">
+					<small class="error"></small>
+				</div>
+				<div class="form-check">
+				  <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
+				  <label class="form-check-label" for="defaultCheck1">
+				    Title
+				  </label>
+				</div>
+				<div class="form-check">
+				  <input class="form-check-input" type="checkbox" value="" id="defaultCheck2">
+				  <label class="form-check-label" for="defaultCheck2">
+				    Description
+				  </label>
+				</div>
+				<div class="form-check">
+				  <input class="form-check-input" type="checkbox" value="" id="defaultCheck3">
+				  <label class="form-check-label" for="defaultCheck3">
+				    Number of links
+				  </label>
+				</div>
+				<div class="form-check">
+				  <input class="form-check-input" type="checkbox" value="" id="defaultCheck4">
+				  <label class="form-check-label" for="defaultCheck4">
+				    H1
+				  </label>
+				</div>
+				<div class="c_error"></div>
+
+	        	<button class="btn btn-info" id="clickApply" >Send</button>
+	            <button class="btn btn-warning" id="clickClear" >Clear</button>
+	        </div>
+	       	<div class="col-xs-12 col-sm-12 col-md-12">
+	       		<textarea id="view" style="display: none;width: 100%; height: 200px;"></textarea>
+			</div>
+	    </div>
+	</div>
+
+	<iframe style="display: none;"></iframe>
+
+	<style type="text/css">
+		small.error{
+			color: red;
+		}
+		.c_error{
+			color: red;
+		}
+		.in_error{
+			border:1px solid red;
+		}
+	</style>
+
+
+	<script type="text/javascript">
+
+		$(document).ready(function(){
+			$('#clickClear').click(function(){
+				$('#getURL').val('');
+				$('.form-check-input[type="checkbox"]').prop('checked', false);
+			});
+			$('#clickApply').click(function(){
+				var isValid = 0;
+				$('#getURL').removeClass('in_error')
+				if($('#getURL').val() == ''){
+					isValid += 1;
+					$('#getURL').addClass('in_error')
+				}
+
+				var isCkeck = 0;
+
+				$('.form-check-input[type="checkbox"]').each(function(k){
+					if($(this).prop('checked')){
+						isCkeck ++;
+					}
+				});
+
+				if(isCkeck == 0){
+					isValid += 2;
+				}
+
+				$('small.error').text('');
+				$('.c_error').text('');
+
+				if(isValid == 1){
+					$('small.error').text('ввод url');
+				}else if(isValid == 2){
+					$('.c_error').text('выбрать чекбокс');
+				}else if(isValid == 3){
+					$('small.error').text('ввод url');
+					$('.c_error').text('выбрать чекбокс');
+
+				}
+
+				$.ajax({
+					type:'GET',
+					url:'get_http.php',
+					data:{url:$('#getURL').val()}
+				}).done(function(data){
+					// console.log(data);
+
+					var getHTML = $('iframe').html(data);
+
+					var out = {};
+
+					$('#view').show();
+
+					$('.form-check-input[type="checkbox"]').each(function(k){
+						// console.log(v, k);
+						if($(this).prop('checked')){
+							if(k == 0){
+								out['title'] = getHTML.find('title:first').text();
+							}else if(k == 1){
+								out['description'] = getHTML.find('meta[name="description"]').attr('content');
+							}else if(k == 2){
+								out['lins'] = getHTML.find('link').length;
+							}else if(k == 3){
+								out['h1'] = getHTML.find('h1:first').text();
+							}
+						}
+					});
+					// out['title'] = getHTML.find('title:first').text();
+					// out['description'] = getHTML.find('meta[name="description"]').attr('content');
+					// out['lins'] = getHTML.find('link').length;
+					// out['h1'] = getHTML.find('h1:first').text();
+					console.log(JSON.stringify( out, null, '\t'))
+					$('#view').val(JSON.stringify( out, null, '\t'));
+				})
+
+			});
+		});
+		
+	</script>
+
+</body>
+</html>
